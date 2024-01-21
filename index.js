@@ -186,8 +186,24 @@ app.get("/teams", async (req, res) => {
         };
       })
     );
-
     res.status(200).json(teamsWithPlayerNames);
+  } catch (error) {
+    console.error("Error:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+app.get("/teams-no-players", async (req, res) => {
+  try {
+    const allTeams = await teams.find();
+    const teamsWithoutPlayers = allTeams.map((team) => {
+      return {
+        teamName: team.teamName,
+        record: team.record,
+        seed: team.seed,
+        finalsSeed: team.finalsSeed,
+      };
+    });
+    res.status(200).json(teamsWithoutPlayers);
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
