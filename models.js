@@ -27,8 +27,14 @@ let gameDataSchema = mongoose.Schema({
   winner: { type: mongoose.Schema.Types.ObjectId, ref: "teams", default: null },
 });
 
+let profilesSchema = mongoose.Schema({
+  adminPass: String,
+});
+
 let teamData = mongoose.model("teams", teamDataSchema, "teams");
 let gameData = mongoose.model("games", gameDataSchema, "games");
+let profileData = mongoose.model("profiles", profilesSchema, "profiles");
 
+module.exports.profileData = profileData;
 module.exports.teamData = teamData;
 module.exports.gameData = gameData;

@@ -8,7 +8,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const mongoose = require("mongoose"),
   Models = require("./models.js"),
   teams = Models.teamData,
-  games = Models.gameData;
+  games = Models.gameData,
+  profiles = Models.profileData;
 app.use(bodyParser.json());
 
 const cors = require("cors");
@@ -252,6 +253,15 @@ app.post("/addPlayer/:name/:tag/:teamName", async (req, res) => {
     console.error("Error adding player to team:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+app.get("/profiles/:password", async (req, res) => {
+  const password = req.params.password;
+  const [{ adminPass }] = await profiles.find({});
+  return res.status(200).json({
+    status: 200,
+    message: password === adminPass,
+  });
 });
 
 app.post("/removePlayer/:name/:tag/:teamName", async (req, res) => {
