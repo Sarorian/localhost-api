@@ -169,6 +169,30 @@ app.put("/update/winner/:stage/:round/:game/:winner", async (req, res) => {
   }
 });
 
+app.get("/teams", async (req, res) => {
+  try {
+    const allTeams = await teams.find();
+    const teamsWithPlayerNames = await Promise.all(
+      allTeams.map(async (team) => {
+        const players = team.players;
+        const playerNamesTags = await getNames(players);
+
+        return {
+          teamName: team.teamName,
+          players: playerNamesTags,
+          record: team.record,
+          seed: team.seed,
+          finalsSeed: team.finalsSeed,
+        };
+      })
+    );
+
+    res.status(200).json(teamsWithPlayerNames);
+  } catch (error) {
+    console.error("Error:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 app.get("/team/:teamName", async (req, res) => {
   try {
     const teamName = req.params.teamName.replace(/_/g, " ");
