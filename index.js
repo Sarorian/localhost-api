@@ -318,9 +318,9 @@ async function getPuuids(players) {
   const puuidPromises = players.map(async (player) => {
     try {
       const response = await axios.get(
-        `https://api.henrikdev.xyz/valorant/v1/account/${player.Name}/${player.Tag}`
+        `https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${player.Name}/${player.Tag}?api_key=${process.env.API_KEY}`
       );
-      return response.data.data.puuid;
+      return response.data.puuid;
     } catch (error) {
       console.error(
         `Error getting PUUID for ${player.Name}/${player.Tag}:`,
@@ -336,10 +336,10 @@ async function getNames(players) {
   const namePromises = players.map(async (player) => {
     try {
       const response = await axios.get(
-        `https://api.henrikdev.xyz/valorant/v1/by-puuid/account/${player}?force=true`
+        `https://americas.api.riotgames.com/riot/account/v1/accounts/by-puuid/${player}?api_key=${process.env.API_KEY}`
       );
-      const { name, tag } = response.data.data;
-      return { Name: name, Tag: tag };
+      const { gameName, tagLine } = response.data;
+      return { Name: gameName, Tag: tagLine };
     } catch (error) {
       console.error(
         `Error getting name and tag for player ${player}:`,
@@ -354,14 +354,11 @@ async function getNames(players) {
 async function getPuuid(name, tag) {
   try {
     const response = await axios.get(
-      `https://api.henrikdev.xyz/valorant/v1/account/${name}/${tag}`
+      `https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${name}/${tag}?api_key=${process.env.API_KEY}`
     );
-    return response.data.data.puuid;
+    return response.data.puuid;
   } catch (error) {
-    console.error(
-      `Error getting PUUID for ${player.Name}/${player.Tag}:`,
-      error.message
-    );
+    console.error(`Error getting PUUID for ${name}/${tag}:`, error.message);
     throw error;
   }
 }
