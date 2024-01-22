@@ -120,7 +120,10 @@ app.post("/addGame", async (req, res) => {
 
 app.get("/games", async (req, res) => {
   try {
-    const allGames = await games.find();
+    const allGames = await games.find().populate({
+      path: "teams.blue teams.red winner",
+      model: "teams",
+    });
     res.status(200).json(allGames);
   } catch (error) {
     console.error("Error adding game:", error.message);
