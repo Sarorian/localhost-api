@@ -118,6 +118,16 @@ app.post("/addGame", async (req, res) => {
   }
 });
 
+app.get("/games", async (req, res) => {
+  try {
+    const allGames = await games.find();
+    res.status(200).json(allGames);
+  } catch (error) {
+    console.error("Error adding game:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.put(
   "/update/game/:stage/:round/:game/:blueTeam/:redTeam/",
   async (req, res) => {
