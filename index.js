@@ -40,16 +40,13 @@ app.post("/addTeam", async (req, res) => {
 
     const { teamName, players, seed } = req.body;
 
-    // Extract player names and tags from the new structure
     const playerNamesTags = players.map((player) => ({
       Name: player.Name,
       Tag: player.Tag,
     }));
 
-    // Get PUUIDs using the modified player structure
     const puuids = await getPuuids(playerNamesTags);
 
-    // Create an array of player objects following the original schema
     const playersWithSchema = puuids.map((puuid, index) => ({
       puuid,
       gameName: playerNamesTags[index].Name,
@@ -68,6 +65,29 @@ app.post("/addTeam", async (req, res) => {
     res.status(201).json(savedTeam);
   } catch (error) {
     console.error("Error adding team:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.delete("/removeTeam/:teamName", async (req, res) => {
+  try {
+    const teamName = req.params.teamName.replace(/_/g, " ");
+    const result = await teams.deleteOne({ teamName });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        status: 404,
+        data: [],
+        message: `No team called ${req.params.teamName}`,
+      });
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: `Team ${req.params.teamName} deleted successfully`,
+    });
+  } catch (error) {
+    console.error("Error deleting team:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
