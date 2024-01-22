@@ -39,11 +39,26 @@ app.post("/addTeam", async (req, res) => {
     }
 
     const { teamName, players, seed } = req.body;
-    const puuids = await getPuuids(players);
+
+    // Extract player names and tags from the new structure
+    const playerNamesTags = players.map((player) => ({
+      Name: player.Name,
+      Tag: player.Tag,
+    }));
+
+    // Get PUUIDs using the modified player structure
+    const puuids = await getPuuids(playerNamesTags);
+
+    // Create an array of player objects following the original schema
+    const playersWithSchema = puuids.map((puuid, index) => ({
+      puuid,
+      gameName: playerNamesTags[index].Name,
+      tag: playerNamesTags[index].Tag,
+    }));
 
     const newTeam = new teams({
       teamName,
-      players: puuids,
+      players: playersWithSchema,
       record: { wins: 0, losses: 0 },
       seed: seed || 0,
     });
@@ -172,38 +187,22 @@ app.put("/update/winner/:stage/:round/:game/:winner", async (req, res) => {
 app.get("/teams", async (req, res) => {
   try {
     const allTeams = await teams.find();
-    const teamsWithPlayerNames = await Promise.all(
-      allTeams.map(async (team) => {
-        const players = team.players;
-        const playerNamesTags = await getNames(players);
-
+    const allTeamsNoPuuid = allTeams.map((team) => {
+      const players = team.players.map((player) => {
         return {
-          teamName: team.teamName,
-          players: playerNamesTags,
-          record: team.record,
-          seed: team.seed,
-          finalsSeed: team.finalsSeed,
+          gameName: player.gameName,
+          tag: player.tag,
         };
-      })
-    );
-    res.status(200).json(teamsWithPlayerNames);
-  } catch (error) {
-    console.error("Error:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-app.get("/teams-no-players", async (req, res) => {
-  try {
-    const allTeams = await teams.find();
-    const teamsWithoutPlayers = allTeams.map((team) => {
+      });
       return {
         teamName: team.teamName,
+        players: players,
         record: team.record,
         seed: team.seed,
         finalsSeed: team.finalsSeed,
       };
     });
-    res.status(200).json(teamsWithoutPlayers);
+    res.status(200).json(allTeamsNoPuuid);
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
@@ -222,12 +221,16 @@ app.get("/team/:teamName", async (req, res) => {
       });
     }
 
-    const players = data.players;
-    const playerNamesTags = await getNames(players);
+    const players = data.players.map((player) => {
+      return {
+        gameName: player.gameName,
+        tag: player.tag,
+      };
+    });
 
     const responseData = {
       teamName: data.teamName,
-      players: playerNamesTags,
+      players: players,
       record: data.record,
       seed: data.seed,
       finalsSeed: data.finalsSeed,
@@ -284,8 +287,12 @@ app.post("/addPlayer/:name/:tag/:teamName", async (req, res) => {
     }
 
     const playerPuuid = await getPuuid(req.params.name, req.params.tag);
-
-    existingTeam.players.push(playerPuuid);
+    const player = {
+      puuid: playerPuuid,
+      gameName: req.params.name,
+      tag: req.params.tag,
+    };
+    existingTeam.players.push(player);
 
     const updatedTeam = await existingTeam.save();
     res.json(updatedTeam);
@@ -319,9 +326,34 @@ app.post("/removePlayer/:name/:tag/:teamName", async (req, res) => {
     const playerToRemovePuuid = await getPuuid(req.params.name, req.params.tag);
 
     existingTeam.players = existingTeam.players.filter(
-      (player) => player !== playerToRemovePuuid
+      (player) => player.puuid !== playerToRemovePuuid
     );
 
+    const updatedTeam = await existingTeam.save();
+    res.json(updatedTeam);
+  } catch (error) {
+    console.error("Error removing player from team:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.put("/updatePlayers/team/:teamName", async (req, res) => {
+  try {
+    const teamName = req.params.teamName.replace(/_/g, " ");
+    let existingTeam = await teams.findOne({ teamName });
+
+    if (!existingTeam) {
+      return res.status(404).json({
+        status: 404,
+        message: `No team called ${teamName} found`,
+      });
+    }
+
+    const newPlayers = await getNames(existingTeam.players);
+    console.log(newPlayers);
+    existingTeam.players = newPlayers.map((player) => {
+      return { puuid: player.puuid, gameName: player.Name, tag: player.Tag };
+    });
     const updatedTeam = await existingTeam.save();
     res.json(updatedTeam);
   } catch (error) {
@@ -352,10 +384,10 @@ async function getNames(players) {
   const namePromises = players.map(async (player) => {
     try {
       const response = await axios.get(
-        `https://americas.api.riotgames.com/riot/account/v1/accounts/by-puuid/${player}?api_key=${process.env.API_KEY}`
+        `https://americas.api.riotgames.com/riot/account/v1/accounts/by-puuid/${player.puuid}?api_key=${process.env.API_KEY}`
       );
       const { gameName, tagLine } = response.data;
-      return { Name: gameName, Tag: tagLine };
+      return { puuid: player.puuid, Name: gameName, Tag: tagLine };
     } catch (error) {
       console.error(
         `Error getting name and tag for player ${player}:`,

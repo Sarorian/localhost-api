@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 let teamDataSchema = mongoose.Schema({
   teamName: String,
-  players: [String],
+  players: [{ puuid: String, gameName: String, tag: String }],
   record: { wins: Number, losses: Number },
   seed: { type: Number, default: 0 },
   finalsSeed: { type: Number, default: 0 },
