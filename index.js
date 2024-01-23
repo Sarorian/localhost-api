@@ -291,6 +291,52 @@ app.put("/giveWin/:teamName", async (req, res) => {
   }
 });
 
+app.put("/takeWins/:teamName/:amount", async (req, res) => {
+  try {
+    const teamName = req.params.teamName.replace(/_/g, " ");
+    let existingTeam = await teams.findOne({ teamName });
+
+    if (!existingTeam) {
+      return res.status(404).json({
+        status: 404,
+        message: `No team called ${teamName} found`,
+      });
+    }
+
+    existingTeam.record.wins -= req.params.amount;
+
+    const updatedTeam = await existingTeam.save();
+
+    res.json(updatedTeam);
+  } catch (error) {
+    console.error("Error updating team:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.put("/takeLosses/:teamName/:amount", async (req, res) => {
+  try {
+    const teamName = req.params.teamName.replace(/_/g, " ");
+    let existingTeam = await teams.findOne({ teamName });
+
+    if (!existingTeam) {
+      return res.status(404).json({
+        status: 404,
+        message: `No team called ${teamName} found`,
+      });
+    }
+
+    existingTeam.record.losses -= req.params.amount;
+
+    const updatedTeam = await existingTeam.save();
+
+    res.json(updatedTeam);
+  } catch (error) {
+    console.error("Error updating team:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.put("/giveLoss/:teamName", async (req, res) => {
   try {
     const teamName = req.params.teamName.replace(/_/g, " ");
