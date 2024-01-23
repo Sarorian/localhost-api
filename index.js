@@ -58,6 +58,8 @@ app.post("/addTeam", async (req, res) => {
       players: playersWithSchema,
       record: { wins: 0, losses: 0 },
       seed: seed || 0,
+      inPlayoffs: false,
+      eliminated: false,
     });
 
     const savedTeam = await newTeam.save();

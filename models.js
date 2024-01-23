@@ -6,6 +6,8 @@ let teamDataSchema = mongoose.Schema({
   record: { wins: Number, losses: Number },
   seed: { type: Number, default: 0 },
   finalsSeed: { type: Number, default: 0 },
+  inPlayoffs: Boolean,
+  eliminated: Boolean,
 });
 
 let gameDataSchema = mongoose.Schema({
