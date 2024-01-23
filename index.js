@@ -187,10 +187,10 @@ app.get("/game/:stage/:round/:game", async (req, res) => {
 
 app.put("/update/winner/:stage/:round/:game/:winner", async (req, res) => {
   const { round, stage, game, winner } = req.params;
-
+  const winnerName = winner.replace(/_/g, " ");
   try {
     let existingGame = await games.findOne({ round, stage, game });
-
+    const winningTeam = await teams.findOne({ teamName: winnerName });
     if (!existingGame) {
       return res.status(404).json({
         status: 404,
@@ -198,19 +198,11 @@ app.put("/update/winner/:stage/:round/:game/:winner", async (req, res) => {
       });
     }
 
-    if (winner !== "blue" && winner !== "red") {
-      return res.status(400).json({
-        status: 400,
-        message: "Please select either blue or red as the winner",
-      });
-    }
-
-    existingGame.winner =
-      winner === "blue" ? existingGame.teams.blue : existingGame.teams.red;
+    existingGame.winner = winningTeam._id;
 
     const updatedGame = await existingGame.save();
 
-    res.json(updatedGame);
+    res.status(200).json(updatedGame);
   } catch (error) {
     console.error("Error updating game:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
