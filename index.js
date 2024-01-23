@@ -155,7 +155,7 @@ app.put(
 
       const updatedGame = await existingGame.save();
 
-      res.json(updatedGame);
+      res.status(200).json(updatedGame);
     } catch (error) {
       console.error("Error updating game:", error.message);
       res.status(500).json({ error: "Internal Server Error" });
