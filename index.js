@@ -71,6 +71,54 @@ app.post("/addTeam", async (req, res) => {
   }
 });
 
+app.put("/setStage/:teamName/:stage", async (req, res) => {
+  try {
+    const teamName = req.params.teamName.replace(/_/g, " ");
+    const data = await teams.findOne({ teamName });
+
+    if (!data) {
+      return res.status(404).json({
+        status: 404,
+        data: [],
+        message: `No team called ${req.params.teamName}`,
+      });
+    }
+
+    data.stage = req.params.stage;
+
+    const updatedTeam = await data.save();
+
+    res.status(200).json(updatedTeam);
+  } catch (error) {
+    console.error("Error deleting team:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.put("/eliminate/:teamName", async (req, res) => {
+  try {
+    const teamName = req.params.teamName.replace(/_/g, " ");
+    const data = await teams.findOne({ teamName });
+
+    if (!data) {
+      return res.status(404).json({
+        status: 404,
+        data: [],
+        message: `No team called ${req.params.teamName}`,
+      });
+    }
+
+    data.eliminated = true;
+
+    const updatedTeam = await data.save();
+
+    res.status(200).json(updatedTeam);
+  } catch (error) {
+    console.error("Error deleting team:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.delete("/removeTeam/:teamName", async (req, res) => {
   try {
     const teamName = req.params.teamName.replace(/_/g, " ");
