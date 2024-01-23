@@ -209,6 +209,20 @@ app.put("/update/winner/:stage/:round/:game/:winner", async (req, res) => {
   }
 });
 
+app.put("/resetGames", async (req, res) => {
+  try {
+    await games.updateMany(
+      {},
+      { $set: { "teams.blue": null, "teams.red": null, winner: null } }
+    );
+
+    res.status(200).json({ message: "All games reset successfully" });
+  } catch (error) {
+    console.error("Error resetting games:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.get("/teams", async (req, res) => {
   try {
     const allTeams = await teams.find();
