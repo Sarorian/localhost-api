@@ -58,7 +58,7 @@ app.post("/addTeam", async (req, res) => {
       players: playersWithSchema,
       record: { wins: 0, losses: 0 },
       seed: seed || 0,
-      inPlayoffs: false,
+      stage: "Swiss",
       eliminated: false,
     });
 
@@ -452,7 +452,6 @@ app.put("/updatePlayers/team/:teamName", async (req, res) => {
     }
 
     const newPlayers = await getNames(existingTeam.players);
-    console.log(newPlayers);
     existingTeam.players = newPlayers.map((player) => {
       return { puuid: player.puuid, gameName: player.Name, tag: player.Tag };
     });
