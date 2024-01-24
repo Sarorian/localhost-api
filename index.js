@@ -337,6 +337,8 @@ app.get("/teams", async (req, res) => {
         record: team.record,
         seed: team.seed,
         finalsSeed: team.finalsSeed,
+        stage: team.stage,
+        eliminated: team.eliminated,
       };
     });
     res.status(200).json(allTeamsNoPuuid);
