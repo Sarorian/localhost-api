@@ -13,7 +13,7 @@ const mongoose = require("mongoose"),
 app.use(bodyParser.json());
 
 const cors = require("cors");
-let allowedOrigins = ["http://localhost:3000"];
+let allowedOrigins = ["http://localhost:3000", "https://sarorian.github.io/"];
 
 app.use(
   cors({
